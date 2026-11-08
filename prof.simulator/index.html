@@ -1,36 +1,3 @@
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyA8CmxxuLY7a8_PSHfYmBnhR7rajIGzyNs",
-    authDomain: "simulatore-scuola.firebaseapp.com",
-    databaseURL: "https://simulatore-scuola-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "simulatore-scuola",
-    storageBucket: "simulatore-scuola.firebasestorage.app",
-    messagingSenderId: "400433710658",
-    appId: "1:400433710658:web:67020d63534fef38958fdb"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
-
-  // Inizializza Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  // Rendiamo globale il database per poterlo usare facilmente nel resto dell'app
-  window.db = db;
-  window.dbRef = ref;
-  window.dbSet = set;
-  window.dbOnValue = onValue;
-
-  console.log("🔥 Firebase connesso con successo a Prof. Simulator!");
-</script>
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -769,6 +736,33 @@
         </div>
     </div>
 
+    <!-- ⚡ Firebase Integration Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8CmxxuLY7a8_PSHfYmBnhR7rajIGzyNs",
+            authDomain: "simulatore-scuola.firebaseapp.com",
+            databaseURL: "https://simulatore-scuola-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "simulatore-scuola",
+            storageBucket: "simulatore-scuola.firebasestorage.app",
+            messagingSenderId: "400433710658",
+            appId: "1:400433710658:web:67020d63534fef38958fdb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.db = db;
+        window.dbRef = ref;
+        window.dbSet = set;
+        window.dbOnValue = onValue;
+
+        console.log("🔥 Firebase connesso con successo a Prof. Simulator!");
+    </script>
+
+    <!-- Script Principali App -->
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
