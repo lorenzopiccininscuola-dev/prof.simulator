@@ -1,18 +1,23 @@
 <script type="module">
-  // Importa le funzioni SDK di Firebase necessarie
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
-  // Configurazione del tuo progetto "Prof. Simulator"
-const firebaseConfig = {
-  apiKey: "AIzaSyA8CmxxuLY7a8_PSHfYmBnhR7rajIGzyNs",
-  authDomain: "simulatore-scuola.firebaseapp.com",
-  databaseURL: "https://simulatore-scuola-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "simulatore-scuola",
-  storageBucket: "simulatore-scuola.firebasestorage.app",
-  messagingSenderId: "400433710658",
-  appId: "1:400433710658:web:67020d63534fef38958fdb"
-};
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyA8CmxxuLY7a8_PSHfYmBnhR7rajIGzyNs",
+    authDomain: "simulatore-scuola.firebaseapp.com",
+    databaseURL: "https://simulatore-scuola-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "simulatore-scuola",
+    storageBucket: "simulatore-scuola.firebasestorage.app",
+    messagingSenderId: "400433710658",
+    appId: "1:400433710658:web:67020d63534fef38958fdb"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
 
   // Inizializza Firebase
   const app = initializeApp(firebaseConfig);
