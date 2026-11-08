@@ -1,0 +1,769 @@
+<script type="module">
+  // Importa le funzioni SDK di Firebase necessarie
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+  // Configurazione del tuo progetto "Prof. Simulator"
+  const firebaseConfig = {
+    apiKey: "AIzaSyA8CmxxuLY7a8_PSHfYmBnhR7rajIGzyNs",
+    authDomain: "simulatore-scuola.firebaseapp.com",
+    databaseURL: "https://simulatore-scuola-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "simulatore-scuola",
+    storageBucket: "simulatore-scuola.firebasestorage.app",
+    messagingSenderId: "400433710658",
+    appId: "1:400433710658:web:67020d63534fef38958fdb"
+  };
+
+  // Inizializza Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // Rendiamo globale il database per poterlo usare facilmente nel resto dell'app
+  window.db = db;
+  window.dbRef = ref;
+  window.dbSet = set;
+  window.dbOnValue = onValue;
+
+  console.log("🔥 Firebase connesso con successo a Prof. Simulator!");
+</script>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professor Simulator - Registro Elettronico Istituzionale</title>
+    
+    <!-- 🎨 Ripristino istantaneo del tema salvato per evitare sfarfallii all'F5 -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('prof_simulator_theme') || 'classic';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            --primary-hover: #1e40af;
+            --primary-light: #eff6ff;
+            --primary-border: #bfdbfe;
+            --success: #10b981;
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            --success-light: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 10px 15px -3px rgba(15, 23, 42, 0.05), 0 4px 6px -2px rgba(15, 23, 42, 0.025);
+            --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -5px rgba(15, 23, 42, 0.03);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+        }
+
+        /* 8 Temi Pastello / Personalizzati */
+        [data-theme="zenith"] {
+            --bg-main: #e8f5e9; --card-bg: #ffffff; --text-main: #1b3b2b; --text-muted: #52796f; --primary: #2e7d32; --primary-light: #c8e6c9; --primary-border: #a5d6a7; --accent: #43a047; --shadow-md: 0 10px 15px -3px rgba(46, 125, 50, 0.08);
+        }
+        [data-theme="amber"] {
+            --bg-main: #fcf6ed; --card-bg: #ffffff; --text-main: #2c241d; --text-muted: #7c6f64; --primary: #b45309; --primary-light: #fef3c7; --primary-border: #fde68a; --accent: #d97706; --shadow-md: 0 10px 15px -3px rgba(180, 83, 9, 0.08);
+        }
+        [data-theme="moka"] {
+            --bg-main: #f4efe6; --card-bg: #ffffff; --text-main: #3d3124; --text-muted: #8c7a6b; --primary: #8c5830; --primary-light: #faeddb; --primary-border: #ebd8c2; --accent: #a67142; --shadow-md: 0 10px 15px -3px rgba(140, 88, 48, 0.08);
+        }
+        [data-theme="rosa"] {
+            --bg-main: #fdf2f4; --card-bg: #ffffff; --text-main: #4a2830; --text-muted: #9e6774; --primary: #db2777; --primary-light: #fce7f3; --primary-border: #fbcfe8; --accent: #ec4899; --shadow-md: 0 10px 15px -3px rgba(219, 39, 119, 0.08);
+        }
+        [data-theme="lilla"] {
+            --bg-main: #f5f3ff; --card-bg: #ffffff; --text-main: #3b2e59; --text-muted: #7c6fa6; --primary: #7c3aed; --primary-light: #ede9fe; --primary-border: #ddd6fe; --accent: #8b5cf6; --shadow-md: 0 10px 15px -3px rgba(124, 58, 237, 0.08);
+        }
+        [data-theme="arancio"] {
+            --bg-main: #fffbeb; --card-bg: #ffffff; --text-main: #452b0d; --text-muted: #9a7b48; --primary: #d97706; --primary-light: #fef3c7; --primary-border: #fde68a; --accent: #f59e0b; --shadow-md: 0 10px 15px -3px rgba(217, 119, 6, 0.08);
+        }
+        [data-theme="verdeacqua"] {
+            --bg-main: #f0fdfa; --card-bg: #ffffff; --text-main: #134e4a; --text-muted: #5eead4; --primary: #0d9488; --primary-light: #ccfbf1; --primary-border: #99f6e4; --accent: #14b8a6; --shadow-md: 0 10px 15px -3px rgba(13, 148, 136, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Sidebar Navigazione */
+        sidebar {
+            width: 260px;
+            min-width: 260px;
+            background: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px 18px;
+            box-shadow: var(--shadow-sm);
+            z-index: 10;
+        }
+
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-left: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 11px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent;
+            background: transparent;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateX(2px);
+        }
+
+        .nav-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+            border-color: var(--primary-border);
+            box-shadow: var(--shadow-xs);
+        }
+
+        /* Area Principale */
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        header {
+            height: 72px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 32px;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .header-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.88rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+        }
+
+        .content-body {
+            flex-grow: 1;
+            padding: 28px;
+            overflow-y: auto;
+            position: relative;
+            width: 100%;
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            width: 100%;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--primary-border);
+            background: var(--bg-main);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-card {
+            background: var(--card-bg);
+            color: var(--text-main);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            width: 580px;
+            max-width: 92%;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--primary-border);
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+        .list-item:last-child { border-bottom: none; }
+
+        .stat-bar-bg {
+            background: var(--bg-main);
+            border-radius: 6px;
+            height: 10px;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 4px;
+            border: 1px solid var(--primary-border);
+        }
+        .stat-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Accesso Istituzionale -->
+    <div id="login-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); display: flex; justify-content: center; align-items: center; z-index: 9999;">
+        <div style="background: var(--card-bg); padding: 36px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 460px; text-align: center; border: 1px solid var(--primary-border);">
+            <div style="font-size: 2.8rem; margin-bottom: 8px;">🏫</div>
+            <h2 style="color: var(--text-main); margin-bottom: 4px; font-weight: 800; font-size: 1.4rem;">Istituto Superiore</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Accesso Riservato Docenti & Admin</p>
+            
+            <div style="display: flex; gap: 6px; margin-bottom: 20px; background: var(--bg-main); padding: 5px; border-radius: var(--radius-sm); border: 1px solid var(--primary-border);">
+                <button onclick="window.switchLoginTab('credentials')" id="tab-btn-cred" style="flex: 1; padding: 9px; border: none; background: var(--card-bg); font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--primary); font-size:0.85rem; box-shadow: var(--shadow-xs);">Credenziali</button>
+                <button onclick="window.switchLoginTab('qrcode')" id="tab-btn-qr" style="flex: 1; padding: 9px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; border-radius: 8px; cursor: pointer; font-size:0.85rem;">Scansione Videocamera QR</button>
+            </div>
+
+            <!-- Tab Credenziali -->
+            <div id="login-cred-section" style="text-align: left;">
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 0.82rem; font-weight: 700; display: block; margin-bottom: 4px;">Email Istituzionale:</label>
+                    <input type="email" id="login-email" value="lorenzo.piccinin@scuola.it" placeholder="nome.cognome@scuola.it">
+                </div>
+                <div style="margin-bottom: 18px;">
+                    <label style="font-size: 0.82rem; font-weight: 700; display: block; margin-bottom: 4px;">Password:</label>
+                    <input type="password" id="login-password" value="lorenzo2026!" placeholder="••••••••">
+                </div>
+                <button onclick="window.executeSecureLogin()" class="btn" style="width: 100%; padding: 12px; font-size: 0.92rem;">🔒 Accedi con Credenziali</button>
+            </div>
+
+            <!-- Tab QR Code -->
+            <div id="login-qr-section" style="display: none; text-align: center;">
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">Inquadra il tuo Badge QR con la fotocamera del dispositivo:</p>
+                <div id="qr-reader" style="width: 100%; max-width: 320px; margin: 0 auto 14px auto; border-radius: var(--radius-md); overflow: hidden; border: 2px dashed var(--primary); background: var(--bg-main); min-height: 200px;"></div>
+                <button onclick="window.startCameraScan()" class="btn" id="start-cam-btn" style="width: 100%; background: var(--success);">📷 Attiva Videocamera per Scan</button>
+                <button onclick="window.stopCameraScan()" class="btn" id="stop-cam-btn" style="width: 100%; background: #64748b; display: none; margin-top: 8px;">🛑 Spegni Videocamera</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <sidebar>
+        <div>
+            <div class="brand">🎓 Prof. Simulator</div>
+            <div class="nav-menu">
+                <button class="nav-item active" onclick="window.switchTab('registro', this)">📋 Registro & Lezione</button>
+                <button class="nav-item" onclick="window.switchTab('materiali', this)">📂 Materiale Didattico</button>
+                <button class="nav-item" onclick="window.switchTab('voti', this)">📊 Voti & Competenze</button>
+                <button class="nav-item" onclick="window.switchTab('verifiche', this)">📝 Test & Correzioni</button>
+                <button class="nav-item" onclick="window.switchTab('note', this)">⚠️ Note Disciplinari</button>
+                <button class="nav-item" onclick="window.switchTab('chat', this)">💬 Collegio & Chat</button>
+                <button class="nav-item" onclick="window.switchTab('orario', this)">📅 Orario (Mattina & Sera)</button>
+                <button class="nav-item" onclick="window.switchTab('account', this)">👤 Il Mio Account</button>
+            </div>
+        </div>
+        <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-align: center; border-top: 1px solid var(--border-color); padding-top: 14px;">
+            Istituto Superiore v4.0 Pro
+        </div>
+    </sidebar>
+
+    <!-- Main -->
+    <main>
+        <header>
+            <div class="header-title" id="current-title">Registro & Lezione - Prof. Lorenzo Piccinin</div>
+            <div class="header-controls">
+                <button class="btn" onclick="window.openDailyReportModal()" style="background: var(--success); padding: 7px 12px; font-size: 0.8rem;">📊 Report Giornaliero</button>
+                <span id="time-display" style="font-weight: 700; font-size: 0.85rem; color: var(--primary); background: var(--primary-light); border: 1px solid var(--primary-border); padding: 7px 12px; border-radius: 9999px;">Lunedì 08:00</span>
+                <button class="btn" onclick="window.openClassSelectionModal()" style="background: #475569; padding: 7px 12px; font-size: 0.8rem;">Cambia Classe</button>
+            </div>
+        </header>
+
+        <div class="content-body">
+            
+            <!-- TAB 1: REGISTRO & APPELLO GUIDATO -->
+            <div id="tab-registro" class="tab-content active">
+                <div style="max-width: 950px; margin: 0 auto;">
+                    
+                    <div class="card" id="start-hour-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="font-weight: 800; font-size: 1.1rem;">Gestione Ora di Lezione</h3>
+                            <span id="schedule-status-badge" class="badge" style="background: var(--primary-light); color: var(--primary);">🕒 Controllo Orario...</span>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 6px; font-size: 0.85rem;">Argomento Trattato:</label>
+                            <input type="text" id="lesson-topic" placeholder="Es. Spiegazione Capitolo 4...">
+                        </div>
+                        <button class="btn" onclick="window.startInteractiveLesson()" style="width: 100%; background: var(--success);">🟢 Firma e Avvia Ora</button>
+                    </div>
+
+                    <div class="card" id="active-lesson-card" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 id="current-lesson-title-display" style="font-weight: 800; font-size: 1.1rem; color: var(--primary);">Argomento</h3>
+                            <span id="timer-badge" class="badge" style="background: var(--primary-light); color: var(--primary);">⏱️ 00:00</span>
+                        </div>
+                        <div id="classroom-live-feed" style="background: var(--bg-main); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; height: 120px; overflow-y: auto; margin-bottom: 12px; font-size: 0.85rem;">
+                            <em>La classe è in ascolto della tua spiegazione...</em>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                            <input type="text" id="teacher-speech-input" placeholder="Spiega un concetto alla classe..." onkeypress="if(event.key === 'Enter') window.sendTeacherSpeech()" style="font-size: 0.88rem;">
+                            <button class="btn" onclick="window.sendTeacherSpeech()" style="font-size: 0.88rem;">Parla</button>
+                        </div>
+                    </div>
+
+                    <div class="card" id="appello-card"></div>
+
+                </div>
+            </div>
+
+            <!-- TAB 2: MATERIALI -->
+            <div id="tab-materiali" class="tab-content">
+                <div style="max-width: 900px; margin: 0 auto;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 14px; font-weight: 800; font-size: 1.1rem;">Pubblica Materiale / Dispense</h3>
+                        <input type="text" id="mat-title" placeholder="Titolo del materiale..." style="margin-bottom: 10px;">
+                        <textarea id="mat-desc" placeholder="Descrizione o contenuto..." rows="3" style="margin-bottom: 12px;"></textarea>
+                        <button class="btn" onclick="window.addMaterial()" style="font-size: 0.88rem;">Pubblica ai Banchi</button>
+                    </div>
+                    <div class="card"><h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;">Materiali Pubblicati</h3><div id="material-list"></div></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: VOTI -->
+            <div id="tab-voti" class="tab-content">
+                <div style="max-width: 900px; margin: 0 auto;">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                            <h3 style="font-weight: 800; font-size: 1.1rem;">Registro Voti</h3>
+                            <button class="btn" onclick="window.openAddGradeModal()" style="font-size: 0.85rem; padding: 8px 14px;">+ Voto</button>
+                        </div>
+                        <div id="voti-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: VERIFICHE -->
+            <div id="tab-verifiche" class="tab-content">
+                <div style="max-width: 900px; margin: 0 auto;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 14px; font-weight: 800; font-size: 1.1rem;">Assegna Verifica o Test</h3>
+                        <input type="text" id="exam-topic" placeholder="Titolo Verifica..." style="margin-bottom: 10px;">
+                        <textarea id="exam-text" placeholder="Testo delle domande..." rows="4" style="margin-bottom: 12px;"></textarea>
+                        <button class="btn" onclick="window.assignExam()" style="font-size: 0.88rem;">Distribuisci Verifica</button>
+                    </div>
+                    <div class="card" id="exam-progress-card" style="display:none;"><h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;">Svolgimento Test: <span id="active-exam-title"></span></h3><div id="exam-students-status" style="display:flex; flex-direction:column; gap:6px;"></div></div>
+                    <div class="card"><h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;">Elaborati in Attesa di Correzione</h3><div id="pending-exams-list"></div></div>
+                </div>
+            </div>
+
+            <!-- TAB 5: NOTE -->
+            <div id="tab-note" class="tab-content">
+                <div style="max-width: 900px; margin: 0 auto;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 14px; font-weight: 800; font-size: 1.1rem;">Note Disciplinari & Elogi</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <select id="note-student-select" style="font-size: 0.88rem;"></select>
+                            <select id="note-type" style="font-size: 0.88rem;">
+                                <option value="nota">Nota Disciplinare</option>
+                                <option value="richiamo">Richiamo Verbale</option>
+                                <option value="elogio">Elogio / Merito</option>
+                            </select>
+                        </div>
+                        <textarea id="note-text" placeholder="Motivazione..." rows="3" style="margin-bottom: 12px;"></textarea>
+                        <button class="btn" onclick="window.addNote()" style="font-size: 0.88rem;">Registra Nota</button>
+                    </div>
+                    <div class="card"><h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;">Storico Note</h3><div id="note-history"></div></div>
+                </div>
+            </div>
+
+            <!-- TAB 6: CHAT -->
+            <div id="tab-chat" class="tab-content">
+                <div style="max-width: 960px; margin: 0 auto;">
+                    <div style="display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px;">
+                        <div>
+                            <div class="card">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <h3 style="font-weight: 800; font-size: 1.1rem;">Collegio Docenti</h3>
+                                    <button id="admin-add-prof-btn" class="btn" onclick="window.openAddProfModal()" style="font-size: 0.75rem; padding: 5px 10px; background: var(--success); display: none;">+ Nuovo Prof</button>
+                                </div>
+                                <div id="faculty-prof-list"></div>
+                            </div>
+                        </div>
+                        <div class="card" style="display: flex; flex-direction: column; height: 460px;">
+                            <h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;">Chat Diretta</h3>
+                            <div id="chat-box" style="flex-grow: 1; border: 1px solid var(--border-color); padding: 12px; overflow-y: auto; background: var(--bg-main); border-radius: 8px; margin-bottom: 10px;"></div>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="chat-input" placeholder="Scrivi un messaggio..." onkeypress="if(event.key === 'Enter') window.sendFacultyChatMessage()" style="font-size: 0.88rem;">
+                                <button class="btn" onclick="window.sendFacultyChatMessage()" style="font-size: 0.88rem;">Invia</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 7: ORARIO -->
+            <div id="tab-orario" class="tab-content">
+                <div style="max-width: 1050px; margin: 0 auto;">
+                    <div id="admin-schedule-view">
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <div>
+                                    <h3 style="font-weight: 800; font-size: 1.2rem;">📅 Calendario Orario Scolastico Completo</h3>
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn" onclick="window.openAddProfModal()" style="background: var(--primary); font-size: 0.85rem;">+ Aggiungi Docente</button>
+                                    <button class="btn" onclick="window.openAddScheduleModal()" style="background: var(--success); font-size: 0.85rem;">+ Aggiungi Ora</button>
+                                    <button class="btn" onclick="window.clearAllSchedule()" style="background: var(--danger); font-size: 0.85rem;">🗑️ Svuota Orario</button>
+                                </div>
+                            </div>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.85rem;">
+                                    <thead>
+                                        <tr style="background: var(--bg-main); border-bottom: 2px solid var(--border-color);">
+                                            <th style="padding: 10px;">Ora</th>
+                                            <th style="padding: 10px;">Lunedì</th>
+                                            <th style="padding: 10px;">Martedì</th>
+                                            <th style="padding: 10px;">Mercoledì</th>
+                                            <th style="padding: 10px;">Giovedì</th>
+                                            <th style="padding: 10px;">Venerdì</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="interactive-schedule-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="docent-personal-schedule-view" style="display: none;">
+                        <div class="card">
+                            <h3 id="personal-docent-title" style="font-weight: 800; font-size: 1.2rem; color: var(--primary); margin-bottom: 6px;">Il Tuo Calendario Settimanale</h3>
+                            <div id="docent-daily-schedule-cards" style="display: flex; flex-direction: column; gap: 14px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 8: ACCOUNT -->
+            <div id="tab-account" class="tab-content">
+                <div style="max-width: 950px; margin: 0 auto;">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h3 style="font-weight: 800; font-size: 1.2rem; color: var(--primary);">👤 Profilo Docente Personale</h3>
+                            <button class="btn" onclick="window.handleLogout()" style="background:var(--danger); padding:6px 12px; font-size:0.8rem;">🚪 Esci / Logout</button>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Modifica le tue materie o il tema visivo del registro.</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <label style="font-weight: 700; font-size: 0.82rem; display: block; margin-bottom: 4px;">Nome e Cognome:</label>
+                                <input type="text" id="acc-name" readonly style="background: #e2e8f0;">
+                            </div>
+                            <div>
+                                <label style="font-weight: 700; font-size: 0.82rem; display: block; margin-bottom: 4px;">Email Istituzionale:</label>
+                                <input type="email" id="acc-email" readonly style="background: #e2e8f0;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <label style="font-weight: 700; font-size: 0.82rem; display: block; margin-bottom: 4px;">Materie Insegnate:</label>
+                            <input type="text" id="acc-subjects">
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <label style="font-weight: 700; font-size: 0.82rem; display: block; margin-bottom: 4px;">Classi Assegnate:</label>
+                            <input type="text" id="acc-classes">
+                        </div>
+
+                        <button class="btn" onclick="window.saveAccountCustomizations()" style="background: var(--primary); font-size: 0.88rem;">💾 Salva Profilo</button>
+                    </div>
+
+                    <div class="card" id="admin-pending-approval-card" style="display: none;">
+                        <h3 style="font-weight: 800; font-size: 1.15rem; color: var(--warning); margin-bottom: 12px;">🔔 Richieste Modifica Account In Attesa (Admin)</h3>
+                        <div id="pending-approvals-list"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modale Grafici & Dettagli Banco Studente -->
+    <div id="student-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 id="modal-student-name" style="font-weight: 800; font-size: 1.2rem; margin-bottom: 4px; color: var(--primary);">Studente</h3>
+            <p id="modal-student-sub" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">Profilo Comportamentale & Statistiche</p>
+            
+            <div style="background: var(--bg-main); padding: 16px; border-radius: 12px; border: 1px solid var(--primary-border); margin-bottom: 16px;">
+                <div id="student-profile-text" style="white-space: pre-line; margin-bottom: 14px; font-size: 0.88rem;"></div>
+                
+                <h4 style="font-weight: 800; font-size: 0.9rem; margin-bottom: 10px; color: var(--text-main);">📊 Grafici d'Andamento Digitale</h4>
+                
+                <div style="margin-bottom: 10px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700;">
+                        <span>Media Voti Scritto/Orale:</span>
+                        <span id="chart-grade-val">0.0 / 10</span>
+                    </div>
+                    <div class="stat-bar-bg"><div id="chart-grade-bar" class="stat-bar-fill" style="background: var(--primary);"></div></div>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700;">
+                        <span>Tasso di Presenza:</span>
+                        <span id="chart-attendance-val">100%</span>
+                    </div>
+                    <div class="stat-bar-bg"><div id="chart-attendance-bar" class="stat-bar-fill" style="background: var(--success);"></div></div>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700;">
+                        <span>Livello d'Ansia / Stress:</span>
+                        <span id="chart-anxiety-val">0%</span>
+                    </div>
+                    <div class="stat-bar-bg"><div id="chart-anxiety-bar" class="stat-bar-fill" style="background: var(--warning);"></div></div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="window.closeModal('student-modal')" style="width:100%; font-size:0.88rem; background: #64748b;">Chiudi Scheda Alunno</button>
+        </div>
+    </div>
+
+    <!-- Modale Aggiungi Ora Orario Dinamica -->
+    <div id="add-schedule-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 14px; font-weight: 800; font-size: 1.15rem;">Aggiungi Ora in Calendario</h3>
+            
+            <div style="margin-bottom: 10px;">
+                <label style="font-weight:700; display:block; margin-bottom:4px; font-size:0.82rem;">Docente:</label>
+                <select id="sched-prof-select" onchange="window.updateScheduleFormOptions()"></select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="font-weight:700; display:block; margin-bottom:4px; font-size:0.82rem;">Giorno:</label>
+                <select id="sched-day-select">
+                    <option value="Lunedì">Lunedì</option>
+                    <option value="Martedì">Martedì</option>
+                    <option value="Mercoledì">Mercoledì</option>
+                    <option value="Giovedì">Giovedì</option>
+                    <option value="Venerdì">Venerdì</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="font-weight:700; display:block; margin-bottom:4px; font-size:0.82rem;">Fascia Oraria:</label>
+                <select id="sched-hour-select">
+                    <option value="0">1ª Ora (15:30 - 16:00)</option>
+                    <option value="1">2ª Ora (16:00 - 16:30)</option>
+                    <option value="2">3ª Ora (16:30 - 17:00)</option>
+                    <option value="3">4ª Ora (17:10 - 17:40)</option>
+                    <option value="4">5ª Ora (17:40 - 18:10)</option>
+                    <option value="5">6ª Ora Sera (20:00 - 20:30)</option>
+                    <option value="6">7ª Ora Sera (20:30 - 21:00)</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="font-weight:700; display:block; margin-bottom:4px; font-size:0.82rem;">Classe (Dinamica):</label>
+                <select id="sched-class-select"></select>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="font-weight:700; display:block; margin-bottom:4px; font-size:0.82rem;">Materia (Dinamica):</label>
+                <select id="sched-subject-select"></select>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="window.saveScheduleEntry()" style="flex-grow: 1; font-size: 0.88rem;">Salva Inserimento</button>
+                <button class="btn" onclick="window.closeModal('add-schedule-modal')" style="background: #64748b; font-size: 0.88rem;">Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Modali Secondarie -->
+    <div id="add-prof-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 14px; font-weight: 800; font-size: 1.15rem; color: var(--primary);">👨‍🏫 Registra Nuovo Docente</h3>
+            <div style="margin-bottom: 10px;">
+                <label style="font-weight:700; display:block; margin-bottom:4px; font-size:0.82rem;">Nome:</label>
+                <input type="text" id="prof-name-input" placeholder="Es. Mario">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="font-weight:700; display:block; margin-bottom:4px; font-size:0.82rem;">Cognome:</label>
+                <input type="text" id="prof-surname-input" placeholder="Es. Rossi">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="font-weight:700; display:block; margin-bottom:4px; font-size:0.82rem;">Materia Insegnata:</label>
+                <input type="text" id="prof-subject-input" placeholder="Es. Storia & Geografia">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="font-weight:700; display:block; margin-bottom:4px; font-size:0.82rem;">Email Istituzionale:</label>
+                <input type="email" id="prof-email-input" placeholder="mario.rossi@scuola.it">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="font-weight:700; display:block; margin-bottom:4px; font-size:0.82rem;">Password Iniziale:</label>
+                <input type="password" id="prof-pass-input" value="mario2026!">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="window.submitCreateNewProf()" style="flex-grow: 1; font-size: 0.88rem; background: var(--success);">Crea Professore e Badge QR</button>
+                <button class="btn" onclick="window.closeModal('add-prof-modal')" style="background: #64748b; font-size: 0.88rem;">Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="daily-report-modal" class="modal-overlay">
+        <div class="modal-card" style="width: 600px;">
+            <h3 style="margin-bottom: 12px; font-weight: 800; font-size: 1.2rem; color: var(--primary);">📊 Report Giornaliero & Pagella Flash</h3>
+            <div id="daily-report-content" style="background: var(--bg-main); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); max-height: 300px; overflow-y: auto; font-size: 0.88rem; margin-bottom: 16px;"></div>
+            <button class="btn" onclick="window.closeModal('daily-report-modal')" style="background: #64748b; font-size: 0.88rem; width:100%;">Chiudi</button>
+        </div>
+    </div>
+
+    <div id="class-select-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="margin-bottom:14px; font-size:1.15rem;">Seleziona Classe</h3>
+            <div id="classes-modal-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;"></div>
+            <button class="btn" onclick="window.closeModal('class-select-modal')" style="background:#64748b; width:100%; font-size:0.88rem;">Chiudi</button>
+        </div>
+    </div>
+
+    <div id="add-grade-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="margin-bottom:12px; font-size:1.15rem;">Inserisci Voto</h3>
+            <select id="grade-modal-student-select" style="margin-bottom:10px; font-size:0.88rem;"></select>
+            <select id="grade-modal-type" style="margin-bottom:10px; font-size:0.88rem;">
+                <option value="scritto">Scritto</option>
+                <option value="orale">Orale</option>
+                <option value="pratico">Pratico</option>
+            </select>
+            <input type="number" id="grade-modal-value" min="1" max="10" step="0.5" placeholder="Voto (es. 7.5)" style="margin-bottom:12px;">
+            <div style="display:flex; gap:8px;">
+                <button class="btn" onclick="window.submitGradeModal()" style="flex-grow:1; font-size:0.88rem;">Salva Voto</button>
+                <button class="btn" onclick="window.closeModal('add-grade-modal')" style="background:#64748b; font-size:0.88rem;">Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
