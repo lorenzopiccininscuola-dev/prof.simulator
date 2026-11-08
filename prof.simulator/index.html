@@ -312,7 +312,7 @@
 </head>
 <body>
 
-    <!-- Accesso Istituzionale -->
+    <!-- Accesso Istituzionale (Protetto con sessionStorage: richiede password se chiudi la scheda/browser) -->
     <div id="login-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); display: flex; justify-content: center; align-items: center; z-index: 9999;">
         <div style="background: var(--card-bg); padding: 36px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 460px; text-align: center; border: 1px solid var(--primary-border);">
             <div style="font-size: 2.8rem; margin-bottom: 8px;">🏫</div>
@@ -736,7 +736,7 @@
         </div>
     </div>
 
-    <!-- ⚡ Firebase Integration Script -->
+    <!-- ⚡ Connessione Firebase e Sicurezza Sessione -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
@@ -754,15 +754,45 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // Oggetti globali per il salvataggio dei dati su Firebase in tempo reale
         window.db = db;
         window.dbRef = ref;
         window.dbSet = set;
         window.dbOnValue = onValue;
 
-        console.log("🔥 Firebase connesso con successo a Prof. Simulator!");
+        // Gestione Login Sicuro con sessionStorage (Richiede password ad ogni chiusura della scheda/browser)
+        window.executeSecureLogin = function() {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            if(email && pass) {
+                sessionStorage.setItem('prof_logged_in', 'true');
+                sessionStorage.setItem('prof_email', email);
+                document.getElementById('login-screen').style.display = 'none';
+            } else {
+                alert('Inserisci credenziali valide.');
+            }
+        };
+
+        window.handleLogout = function() {
+            sessionStorage.removeItem('prof_logged_in');
+            sessionStorage.removeItem('prof_email');
+            location.reload();
+        };
+
+        // Controllo automatico sessione all'apertura
+        window.addEventListener('DOMContentLoaded', () => {
+            const isLoggedIn = sessionStorage.getItem('prof_logged_in');
+            if (isLoggedIn === 'true') {
+                document.getElementById('login-screen').style.display = 'none';
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+            }
+        });
+
+        console.log("🔥 Firebase Cloud e Sistema di Sicurezza Sessione attivi con successo!");
     </script>
 
-    <!-- Script Principali App -->
+    <!-- Script principale dell'applicazione -->
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
