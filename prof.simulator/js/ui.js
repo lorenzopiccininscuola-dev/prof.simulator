@@ -140,7 +140,6 @@ export class UserInterface {
             this.classroom = this.schoolClasses.get("1ª A");
         }
 
-        // Rimozione automatica di qualsiasi residuo del tasto ricreazione nell'HTML
         document.querySelectorAll('button, a, span').forEach(el => {
             if (el.innerText && el.innerText.includes('Ricreazione')) {
                 el.remove();
@@ -152,7 +151,6 @@ export class UserInterface {
         this.injectMissingHtmlComponents();
         this.injectToastContainer();
 
-        // 🔄 Ripristina Sessione e Tema Salvati per evitare Logout all'F5
         this.loadSavedSessionAndTheme();
 
         this.updateHeaderTitle();
@@ -173,11 +171,9 @@ export class UserInterface {
     }
 
     loadSavedSessionAndTheme() {
-        // 1. Carica e applica il tema salvato
         const savedTheme = localStorage.getItem('prof_simulator_theme') || 'classic';
         this.applyTheme(savedTheme);
 
-        // 2. Controlla se c'è un utente loggato in precedenza
         const savedUser = localStorage.getItem('prof_simulator_user');
         if (savedUser) {
             try {
@@ -582,7 +578,6 @@ export class UserInterface {
 
         if (!foundProf) return this.showToast("Email o password errati!", "error");
 
-        // 💾 Salvataggio istantaneo della sessione in localStorage per prevenire il logout con F5
         localStorage.setItem('prof_simulator_user', JSON.stringify({ id: foundProf.id }));
 
         this.teacherProfile = {
@@ -621,7 +616,6 @@ export class UserInterface {
         const foundProf = this.professorsList.find(p => text.includes(p.qrCodeData) || text.toUpperCase().includes(p.id.toUpperCase()));
 
         if (foundProf) {
-            // 💾 Salvataggio della sessione QR
             localStorage.setItem('prof_simulator_user', JSON.stringify({ id: foundProf.id }));
 
             this.teacherProfile = {
@@ -656,7 +650,6 @@ export class UserInterface {
     }
 
     handleLogoutImplementation() {
-        // Pulizia della memoria utente
         localStorage.removeItem('prof_simulator_user');
         const loginScreen = document.getElementById('login-screen');
         if (loginScreen) loginScreen.style.display = 'flex';
@@ -1428,7 +1421,6 @@ export class UserInterface {
             accountTab.appendChild(themeContainer);
         }
 
-        // 🏆 Bacheca Scudetti & Barra XP (Tutti bloccati all'inizio)
         if (accountTab && !document.getElementById('acc-badges-container')) {
             const badgesBox = document.createElement('div');
             badgesBox.id = 'acc-badges-container';
@@ -1449,7 +1441,6 @@ export class UserInterface {
             this.renderProfileBadges();
         }
 
-        // 📖 Libro Interattivo nell'Account
         if (accountTab && !document.getElementById('acc-interactive-book')) {
             const bookBox = document.createElement('div');
             bookBox.id = 'acc-interactive-book';
@@ -1926,7 +1917,9 @@ export class UserInterface {
         document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
 
-    renderClassroomGrid() {}
+    renderClassroomGrid() {
+        this.renderEmbeddedClassroomGrid();
+    }
 
     openStudentModal(student) {
         const displayName = student.displayName || student.name;
